@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokémon-Styled Chat UI</title>
+<style>
+  body {
+    font-family: 'Press Start 2P', cursive;
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+  .pokedex-container {
+    background-color: #ec5656;
+    border: 4px solid #000;
+    border-radius: 20px;
+    padding: 20px;
+    width: 350px;
+    font-size: 12px;
+  }
+  .screen {
+    background-color: #fff;
+    border: 3px solid #000;
+    margin-bottom: 10px;
+  }
+  .chat-display {
+    display: flex;
+    padding: 10px;
+  }
+  .chat-display .picture {
+    width: 50%;
+    border-right: 2px solid #000;
+    text-align: center;
+  }
+  .chat-display .text {
+    width: 50%;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+  .user-input {
+    border: 2px solid #000;
+    margin-bottom: 10px;
+    padding: 5px;
+  }
+  .buttons {
+    display: flex;
+    justify-content: space-between;
+  }
+  button {
+    background-color: #59a3ff;
+    border: 2px solid #000;
+    border-radius: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  /* Add custom pixelated font and adjust the styles as needed */
+</style>
+</head>
+<body>
+
+<div class="pokedex-container">
+  <div class="screen">
+    <div class="chat-display">
+      <div class="picture">
+        <!-- Place for the picture -->
+        <img src="pokemon_image.png" alt="Pokémon Image" style="width: 100px; height: auto;">
+      </div>
+      <div class="text">
+        <!-- Chatbot response will go here -->
+        <p id="chat-response">Responses will appear here...</p>
+      </div>
+    </div>
+  </div>
+  <input type="text" class="user-input" id="user-question" placeholder="Type your question...">
+  <div class="buttons">
+    <button id="send-button">Send</button>
+    <button id="download-button">Download</button>
+  </div>
+</div>
+
+<script>
+  // Your OpenAI API key should be securely stored and should not be exposed in the client-side JavaScript.
+  // This example is for educational purposes only.
+  const openAIKey = 'YOUR_API_KEY_HERE'; // Replace with your OpenAI API key
+
+  document.getElementById('send-button').addEventListener('click', async () => {
+    const questionElement = document.getElementById('user-question');
+    const responseElement = document.getElementById('chat-response');
+    const question = questionElement.value;
+
+    // Clear input after sending the question
+    questionElement.value = '';
+
+    // Simple validation
+    if (question.trim() === '') {
+      alert('Please enter a question.');
+      return;
+    }
+
+    // Construct the payload to send to the OpenAI API
+    const payload = {
+      model: "gpt-3.5-turbo", // or your fine-tuned model name
+      prompt: question,
+      max_tokens: 150,
+      temperature: 0.5
+    };
+
+    // Send the request to the OpenAI API
+    try {
+      const response = await fetch('https://api.openai.com/v1/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${openAIKey}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      responseElement.textContent = data.choices[0].text;
+    } catch (error) {
+      console.error('There was a problem with the fetch operation:', error);
+      responseElement.textContent = 'Error: Could not retrieve response.';
+    }
+  });
+
+  // Implement the download functionality
+  document.getElementById('download-button').addEventListener('click', () => {
+    const responseElement = document.getElementById('chat-response');
+    const blob = new Blob([responseElement.textContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+
+    // Create a link to download it
+    const downloadLink = document.createElement('a');
+    downloadLink.href = url;
+    downloadLink.download = 'chat-manuscript.txt';
+
+    // Simulate a click on the link
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+  });
+</script>
+
+</body>
+</html>
